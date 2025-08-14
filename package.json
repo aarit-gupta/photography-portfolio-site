@@ -1,0 +1,8 @@
+{
+  "name": "photography-portfolio-site",
+  "version": "1.0.0",
+  "description": "A Three.js photography portfolio site inspired by Henry Heffernan",
+  "scripts": {
+    "test": "echo 'No tests specified'"
+  }
+}
