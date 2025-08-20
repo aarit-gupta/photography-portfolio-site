@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Photography Portfolio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="bg"></canvas>
+  
+  <!-- Loading indicator -->
+  <div id="loadingIndicator" class="loading-indicator">
+    <div class="loading-text">Loading images...</div>
+    <div class="loading-progress">
+      <div class="loading-bar" id="loadingBar"></div>
+    </div>
+  </div>
+  
+  <div id="overlay">
+    <h1>Photography Portfolio</h1>
+    <p>Aarit Gupta</p>
+  </div>
+    <div class="nav-hint" id="navHint">
+    <span>scroll to navigate</span>
+  </div>
+  
+  <!-- Mobile Navigation Buttons -->
+  <div class="mobile-nav" id="mobileNav">
+    <button class="nav-btn nav-btn-left" id="navLeft">
+      <svg viewBox="0 0 24 24" width="20" height="20">
+        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" fill="currentColor"/>
+      </svg>
+    </button>
+    <button class="nav-btn nav-btn-right" id="navRight">
+      <svg viewBox="0 0 24 24" width="20" height="20">
+        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z" fill="currentColor"/>
+      </svg>
+    </button>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

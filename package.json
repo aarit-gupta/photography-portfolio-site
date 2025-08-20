@@ -1,0 +1,10 @@
+{
+  "name": "photography-portfolio-site",
+  "version": "1.0.0",
+  "description": "A Three.js photography portfolio site ",
+  "scripts": {
+    "dev": "python3 -m http.server 8000",
+    "start": "python3 -m http.server 8000",
+    "test": "echo 'No tests specified'"
+  }
+}
