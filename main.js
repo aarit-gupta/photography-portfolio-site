@@ -1149,6 +1149,106 @@ function handleZoom(event) {
   }
 }
 
+function loadFullQualityImage(plane) {
+  // Get the original index to find the corresponding full quality image
+  const originalIndex = plane.originalIndex;
+  const fullQualityUrl = imageUrls[originalIndex].replace(
+    "images-optimized/",
+    "images/"
+  );
+
+  console.log(`Loading full quality image: ${fullQualityUrl}`);
+
+  // Store the optimized texture as backup
+  const imageMesh = plane.group.children[0];
+  const optimizedTexture = imageMesh.material.map;
+
+  // Create a loading indicator for the full quality image
+  const loadingIndicator = document.createElement("div");
+  loadingIndicator.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    z-index: 2000;
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  `;
+  loadingIndicator.textContent = "Loading full quality...";
+  document.body.appendChild(loadingIndicator);
+
+  // Fade in the loading indicator
+  setTimeout(() => {
+    loadingIndicator.style.opacity = "1";
+  }, 100);
+
+  // Load the full quality texture
+  const loader = new THREE.TextureLoader();
+  loader.load(
+    fullQualityUrl,
+    (fullTexture) => {
+      // Successfully loaded full quality image
+      console.log("Full quality image loaded successfully");
+
+      // Configure texture settings
+      fullTexture.colorSpace = THREE.SRGBColorSpace;
+      fullTexture.minFilter = THREE.LinearFilter;
+      fullTexture.magFilter = THREE.LinearFilter;
+
+      // Replace the texture on the material
+      imageMesh.material.map = fullTexture;
+      imageMesh.material.needsUpdate = true;
+
+      // Store reference to full quality texture
+      plane.group.userData.fullQualityTexture = fullTexture;
+      plane.group.userData.hasFullQuality = true;
+
+      // Dispose of the optimized texture to free memory
+      if (optimizedTexture && optimizedTexture !== fullTexture) {
+        optimizedTexture.dispose();
+      }
+
+      // Hide and remove loading indicator
+      loadingIndicator.style.opacity = "0";
+      setTimeout(() => {
+        if (loadingIndicator.parentNode) {
+          document.body.removeChild(loadingIndicator);
+        }
+      }, 300);
+    },
+    (progress) => {
+      // Loading progress - update indicator if needed
+      const percent =
+        progress.total > 0
+          ? Math.round((progress.loaded / progress.total) * 100)
+          : 0;
+      if (percent > 0) {
+        loadingIndicator.textContent = `Loading full quality... ${percent}%`;
+      }
+    },
+    (error) => {
+      // Error loading full quality image - keep optimized version
+      console.warn("Failed to load full quality image:", error);
+      console.log("Keeping optimized version");
+
+      // Hide and remove loading indicator
+      loadingIndicator.style.opacity = "0";
+      setTimeout(() => {
+        if (loadingIndicator.parentNode) {
+          document.body.removeChild(loadingIndicator);
+        }
+      }, 300);
+    }
+  );
+}
+
 function enterFocusMode(plane) {
   isFocusMode = true;
   focusedPlane = plane;
@@ -1182,6 +1282,9 @@ function enterFocusMode(plane) {
   cameraOffset = { x: 0, y: 0, z: 0 };
   // Don't reset zoomLevel here - let user start with current zoom
 
+  // Load full quality image for focus mode
+  loadFullQualityImage(plane);
+
   // Animate to focus state
   animateToFocus();
 
@@ -1212,6 +1315,55 @@ function enterFocusMode(plane) {
   }
 }
 
+function revertToOptimizedImage(plane) {
+  // Only revert if we have a full quality image loaded
+  if (!plane.group.userData.hasFullQuality) {
+    return;
+  }
+
+  const originalIndex = plane.originalIndex;
+  const optimizedUrl = imageUrls[originalIndex]; // This is already the optimized path
+
+  console.log(`Reverting to optimized image: ${optimizedUrl}`);
+
+  const imageMesh = plane.group.children[0];
+  const fullQualityTexture = imageMesh.material.map;
+
+  // Load the optimized texture
+  const loader = new THREE.TextureLoader();
+  loader.load(
+    optimizedUrl,
+    (optimizedTexture) => {
+      // Successfully loaded optimized image
+      console.log("Reverted to optimized image successfully");
+
+      // Configure texture settings
+      optimizedTexture.colorSpace = THREE.SRGBColorSpace;
+      optimizedTexture.minFilter = THREE.LinearFilter;
+      optimizedTexture.magFilter = THREE.LinearFilter;
+
+      // Replace the texture on the material
+      imageMesh.material.map = optimizedTexture;
+      imageMesh.material.needsUpdate = true;
+
+      // Dispose of the full quality texture to free memory
+      if (fullQualityTexture) {
+        fullQualityTexture.dispose();
+      }
+
+      // Clear full quality flags
+      plane.group.userData.fullQualityTexture = null;
+      plane.group.userData.hasFullQuality = false;
+    },
+    undefined,
+    (error) => {
+      // Error loading optimized image - keep current (full quality) version
+      console.warn("Failed to revert to optimized image:", error);
+      console.log("Keeping full quality version");
+    }
+  );
+}
+
 function exitFocusMode() {
   if (!focusedPlane) return;
 
@@ -1233,6 +1385,10 @@ function exitFocusMode() {
 
   // Clear any pending camera or rotation animations
   rotationTimeout = null;
+
+  // Optionally revert to optimized image to save memory
+  // (Comment out the next line if you want to keep full quality images loaded)
+  revertToOptimizedImage(focusedPlane);
 
   // Start the exit animation
   animateFromFocus();
