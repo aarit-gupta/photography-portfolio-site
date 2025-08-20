@@ -1167,12 +1167,12 @@ function loadFullQualityImage(plane) {
   const loadingIndicator = document.createElement("div");
   loadingIndicator.style.cssText = `
     position: fixed;
-    top: 50%;
+    bottom: 30px;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.8);
     color: white;
-    padding: 20px 30px;
+    padding: 15px 25px;
     border-radius: 10px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 14px;
